@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { createRoot } from 'react-dom/client';
 import { createClient } from '@supabase/supabase-js';
 
-// --- Constants & Config ---
+// --- Configuration & Constants ---
 const MONTHLY_CONTRIBUTION = 2000;
 const SHORT_TERM_INTEREST_RATE = 0.02; 
 const LONG_TERM_INTEREST_RATE = 0.01;
@@ -60,7 +60,7 @@ interface AppState {
   lastUpdated: number;
 }
 
-// --- Helpers ---
+// --- Logic Helpers ---
 const formatINR = (amount: number) => amount ? Math.round(amount).toLocaleString('en-IN') : '0';
 const getCurrentCycleMonth = () => new Date().toISOString().slice(0, 7);
 
@@ -87,7 +87,6 @@ const calculateNextEMI = (loan: Loan) => {
   };
 };
 
-// --- Baseline Data (Spreadsheet Sync) ---
 const generateBaseline = (): AppState => {
   const users: User[] = [
     { id: 'admin-1', name: 'System Admin', email: INITIAL_ADMIN_EMAIL, role: 'ADMIN', joinedDate: '2023-01-01' },
@@ -106,7 +105,7 @@ const generateBaseline = (): AppState => {
   ];
 
   const contributions: Contribution[] = [];
-  const start = new Date(2024, 10, 10); // Nov 2024
+  const start = new Date(2024, 10, 10);
   const now = new Date();
   
   users.filter(u => u.role === 'MEMBER').forEach(user => {
@@ -131,7 +130,7 @@ const generateBaseline = (): AppState => {
   return { users, contributions, loans, initialInterestEarned: 20060, bankInterest: 1684, lastUpdated: Date.now() };
 };
 
-// --- Components ---
+// --- View Components ---
 
 const Auth = ({ onLogin, users }: { onLogin: (u: User) => void, users: User[] }) => {
   const [email, setEmail] = useState('');
@@ -144,8 +143,9 @@ const Auth = ({ onLogin, users }: { onLogin: (u: User) => void, users: User[] })
       return onLogin(users[0]);
     }
     const member = users.find(u => u.email === email);
-    if (member && password === member.name.trim().split(/\s+/).pop()) {
-      return onLogin(member);
+    if (member) {
+      const surname = member.name.trim().split(/\s+/).pop();
+      if (password === surname) return onLogin(member);
     }
     setError('Invalid credentials.');
   };
@@ -156,13 +156,12 @@ const Auth = ({ onLogin, users }: { onLogin: (u: User) => void, users: User[] })
         <div className="text-center">
           <div className="w-12 h-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center font-black mx-auto mb-4 shadow-xl">S</div>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">Siri Finance</h1>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">Community Ledger</p>
         </div>
         <form onSubmit={handleLogin} className="space-y-4">
           <input type="email" placeholder="Email" className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none font-bold text-sm" value={email} onChange={e => setEmail(e.target.value)} />
           <input type="password" placeholder="Password (Surname)" className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none font-bold text-sm" value={password} onChange={e => setPassword(e.target.value)} />
           {error && <p className="text-red-500 text-[10px] font-black uppercase text-center">{error}</p>}
-          <button type="submit" className="w-full py-5 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl hover:bg-slate-800 transition-all">Sign In</button>
+          <button type="submit" className="w-full py-5 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl">Sign In</button>
         </form>
       </div>
     </div>
@@ -198,39 +197,33 @@ const Dashboard = ({ state, updateState, currentUser, onLogout }: { state: AppSt
   };
 
   return (
-    <div className="min-h-screen pb-20 bg-slate-50/30">
-      <header className="glass-header sticky top-0 z-40 px-6 py-4 flex justify-between items-center border-b border-slate-100">
+    <div className="min-h-screen pb-20">
+      <header className="glass-header sticky top-0 z-40 px-6 py-4 flex justify-between items-center">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center text-white font-black text-xs">S</div>
           <span className="font-black tracking-tight text-slate-900">Siri Finance</span>
         </div>
-        <div className="flex items-center gap-6">
-          <div className="text-right hidden sm:block">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{currentUser.name}</p>
-            <p className="text-[10px] font-bold text-indigo-600 uppercase tracking-widest">{currentUser.role}</p>
-          </div>
-          <button onClick={onLogout} className="text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-red-500 transition-colors">Logout</button>
-        </div>
+        <button onClick={onLogout} className="text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-red-500 transition-colors">Logout</button>
       </header>
 
       <main className="max-w-7xl mx-auto p-6 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="premium-card p-8 space-y-2 bg-slate-900 text-white border-none shadow-2xl">
+          <div className="premium-card p-8 bg-slate-900 text-white border-none shadow-2xl">
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Managed Pool</p>
-            <h2 className="text-3xl font-black tracking-tight">₹{formatINR(metrics.total)}</h2>
+            <h2 className="text-3xl font-black">₹{formatINR(metrics.total)}</h2>
           </div>
-          <div className="premium-card p-8 space-y-2 border-l-4 border-l-indigo-500 shadow-sm">
+          <div className="premium-card p-8 border-l-4 border-l-indigo-500">
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Available Liquidity</p>
-            <h2 className="text-3xl font-black text-slate-900 tracking-tight">₹{formatINR(metrics.liquidity)}</h2>
+            <h2 className="text-3xl font-black text-slate-900">₹{formatINR(metrics.liquidity)}</h2>
           </div>
-          <div className="premium-card p-8 space-y-2 border-l-4 border-l-emerald-500 shadow-sm">
+          <div className="premium-card p-8 border-l-4 border-l-emerald-500">
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Interest Earned</p>
-            <h2 className="text-3xl font-black text-emerald-600 tracking-tight">₹{formatINR(metrics.interest)}</h2>
+            <h2 className="text-3xl font-black text-emerald-600">₹{formatINR(metrics.interest)}</h2>
           </div>
         </div>
 
-        <section className="premium-card overflow-hidden shadow-sm">
-          <div className="flex border-b border-slate-100 bg-slate-50/50 p-2 gap-2">
+        <section className="premium-card overflow-hidden">
+          <div className="flex border-b border-slate-50 bg-slate-50/50 p-2 gap-2">
             {(['members', 'loans', 'history', 'system'] as const).map(t => {
               if (t === 'system' && !isAdmin) return null;
               return (
@@ -253,7 +246,7 @@ const Dashboard = ({ state, updateState, currentUser, onLogout }: { state: AppSt
                   const totalMonthlyDue = pendingContribution + pendingEmi;
 
                   return (
-                    <div key={u.id} className="p-6 rounded-3xl bg-white border border-slate-100 flex flex-col justify-between group hover:border-indigo-200 transition-all shadow-sm">
+                    <div key={u.id} className="p-6 rounded-3xl bg-slate-50/50 border border-slate-100 flex flex-col justify-between group">
                       <div>
                         <div className="flex justify-between items-start mb-4">
                           <p className="font-black text-slate-900">{u.name}</p>
@@ -263,31 +256,31 @@ const Dashboard = ({ state, updateState, currentUser, onLogout }: { state: AppSt
                       </div>
                       
                       {isAdmin && (
-                        <div className="space-y-4">
+                        <div className="space-y-3">
                           <div className="space-y-2">
                             {!isPaid && (
-                              <button onClick={() => recordContribution(u.id)} className="w-full py-3 bg-indigo-600 text-white text-[9px] font-black uppercase rounded-xl hover:bg-indigo-700 transition-colors shadow-sm active:scale-95 transition-transform">
+                              <button onClick={() => recordContribution(u.id)} className="w-full py-3 bg-indigo-600 text-white text-[9px] font-black uppercase rounded-xl hover:bg-indigo-700 transition-colors">
                                 Record Contribution ₹{formatINR(MONTHLY_CONTRIBUTION)}
                               </button>
                             )}
                             {activeLoan && !emiPaid && nextEmi && (
-                              <button onClick={() => recordEMI(activeLoan)} className="w-full py-3 bg-amber-500 text-white text-[9px] font-black uppercase rounded-xl hover:bg-amber-600 transition-colors shadow-sm active:scale-95 transition-transform">
+                              <button onClick={() => recordEMI(activeLoan)} className="w-full py-3 bg-amber-500 text-white text-[9px] font-black uppercase rounded-xl hover:bg-amber-600 transition-colors">
                                 Record EMI ₹{formatINR(nextEmi.totalEMI)}
                               </button>
                             )}
                           </div>
                           
                           {totalMonthlyDue > 0 ? (
-                            <div className="bg-slate-50 border border-slate-100 p-4 rounded-2xl text-center">
+                            <div className="bg-white border border-slate-100 p-4 rounded-2xl text-center">
                               <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Due for {monthName}</p>
                               <p className="text-sm font-black text-slate-900 tracking-tight">₹{formatINR(totalMonthlyDue)}</p>
-                              <div className="mt-2 flex justify-center gap-3">
+                              <div className="mt-2 flex justify-center gap-2">
                                 <span className={`text-[7px] font-bold uppercase ${isPaid ? 'text-emerald-500' : 'text-red-400'}`}>{isPaid ? '✓ Paid' : `+ ₹${formatINR(MONTHLY_CONTRIBUTION)}`}</span>
                                 {activeLoan && <span className={`text-[7px] font-bold uppercase ${emiPaid ? 'text-emerald-500' : 'text-amber-500'}`}>{emiPaid ? '✓ EMI' : `+ ₹${formatINR(pendingEmi)}`}</span>}
                               </div>
                             </div>
                           ) : (
-                            <div className="text-center py-4 bg-emerald-50/50 rounded-2xl border border-emerald-100">
+                            <div className="text-center py-4 bg-emerald-50 rounded-2xl border border-emerald-100">
                               <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">✓ Settled for {monthName}</p>
                             </div>
                           )}
@@ -295,7 +288,7 @@ const Dashboard = ({ state, updateState, currentUser, onLogout }: { state: AppSt
                       )}
                       
                       {!isAdmin && u.id === currentUser.id && (
-                        <div className="mt-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 text-[10px] font-black text-center shadow-sm">
+                        <div className="mt-4 p-4 bg-white rounded-2xl border border-slate-100 text-[10px] font-black text-center">
                            {isPaid ? <span className="text-emerald-600 uppercase tracking-widest">Monthly Dues Settled ✅</span> : <span className="text-red-500 uppercase tracking-widest">Pending: ₹{formatINR(MONTHLY_CONTRIBUTION)}</span>}
                            {activeLoan && !emiPaid && <div className="text-amber-500 uppercase tracking-widest mt-1">EMI: ₹{formatINR(nextEmi?.totalEMI || 0)}</div>}
                         </div>
@@ -308,52 +301,39 @@ const Dashboard = ({ state, updateState, currentUser, onLogout }: { state: AppSt
 
             {tab === 'loans' && (
               <div className="space-y-4">
-                {state.loans.length === 0 ? (
-                  <div className="py-20 text-center text-slate-300 font-bold uppercase text-[10px] tracking-widest">No active loans found</div>
-                ) : (
-                  state.loans.map(l => (
-                    <div key={l.id} className="flex justify-between items-center p-6 border border-slate-100 rounded-3xl bg-white hover:bg-slate-50 transition-colors shadow-sm">
-                      <div>
-                        <p className="font-black text-slate-900">{state.users.find(u => u.id === l.userId)?.name}</p>
-                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Date: {l.requestDate}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-black text-slate-900">₹{formatINR(l.principalRemaining)}</p>
-                        <p className="text-[9px] font-bold text-indigo-500 uppercase">Principal Balance</p>
-                      </div>
+                {state.loans.map(l => (
+                  <div key={l.id} className="flex justify-between items-center p-6 border border-slate-50 rounded-2xl bg-slate-50/30">
+                    <div>
+                      <p className="font-black text-slate-900">{state.users.find(u => u.id === l.userId)?.name}</p>
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Issued: {l.requestDate}</p>
                     </div>
-                  ))
-                )}
+                    <div className="text-right">
+                      <p className="text-sm font-black text-slate-900">₹{formatINR(l.principalRemaining)}</p>
+                      <p className="text-[9px] font-bold text-indigo-500 uppercase">Balance Due</p>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
 
             {tab === 'history' && (
-              <div className="space-y-2 max-h-[600px] overflow-y-auto pr-4">
+              <div className="space-y-2 max-h-[500px] overflow-y-auto pr-4">
                 {state.contributions.slice().reverse().slice(0, 50).map(c => (
-                  <div key={c.id} className="flex justify-between items-center p-5 border-b border-slate-50 bg-white/50 rounded-xl mb-2 hover:bg-white transition-all">
-                    <div className="flex items-center gap-4">
-                      <div className={`w-1.5 h-1.5 rounded-full ${c.id.startsWith('emi') ? 'bg-amber-400' : 'bg-emerald-400'}`}></div>
-                      <div>
-                        <p className="text-xs font-black text-slate-900">{state.users.find(u => u.id === c.userId)?.name}</p>
-                        <p className="text-[9px] font-bold text-slate-300 uppercase tracking-widest">{c.month} • {c.id.startsWith('emi') ? 'EMI' : 'Contribution'}</p>
-                      </div>
+                  <div key={c.id} className="flex justify-between items-center p-4 border-b border-slate-50">
+                    <div>
+                      <p className="text-xs font-black text-slate-900">{state.users.find(u => u.id === c.userId)?.name}</p>
+                      <p className="text-[9px] font-bold text-slate-300 uppercase tracking-widest">{c.month}</p>
                     </div>
-                    <p className="text-xs font-black text-slate-900">+₹{formatINR(c.amount)}</p>
+                    <p className="text-xs font-black text-slate-900">₹{formatINR(c.amount)}</p>
                   </div>
                 ))}
               </div>
             )}
 
             {tab === 'system' && isAdmin && (
-              <div className="py-20 text-center space-y-8">
-                <div className="w-20 h-20 bg-red-50 text-red-500 rounded-3xl flex items-center justify-center mx-auto mb-4">
-                   <svg className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                </div>
-                <div>
-                  <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Database Administration</h3>
-                  <p className="text-xs font-medium text-slate-400 max-w-sm mx-auto mt-2 leading-relaxed">Overwrite the cloud database with the spreadsheet baseline. This reset is irreversible.</p>
-                </div>
-                <button onClick={() => { if(confirm("FORCE OVERWRITE? This resets the database to baseline Nov 2024 data.")) updateState(generateBaseline()); }} className="px-10 py-5 bg-red-600 text-white text-[10px] font-black uppercase rounded-[24px] shadow-2xl hover:bg-red-700 active:scale-95 transition-all">Reset Cloud Ledger</button>
+              <div className="py-20 text-center space-y-6">
+                <p className="text-xs font-bold text-slate-400 max-w-sm mx-auto">Use this to force-sync the cloud database with the correct spreadsheet baseline data (Nov 2024 contributions & specific loan balances).</p>
+                <button onClick={() => { if(confirm("Overwrite Cloud Database?")) updateState(generateBaseline()); }} className="px-8 py-4 bg-red-600 text-white text-[10px] font-black uppercase rounded-2xl shadow-xl hover:bg-red-700 transition-all">Force Cloud Overwrite</button>
               </div>
             )}
           </div>
@@ -393,7 +373,7 @@ const App = () => {
         setState(data.data);
         syncRef.current = data.updated_at;
       }
-    }, 30000);
+    }, 20000);
     return () => clearInterval(interval);
   }, []);
 

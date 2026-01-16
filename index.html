@@ -22,6 +22,7 @@
           background: rgba(255, 255, 255, 0.8);
           backdrop-filter: blur(12px);
           -webkit-backdrop-filter: blur(12px);
+          border-bottom: 1px solid #f1f1f4;
         }
         #loading-overlay {
           position: fixed;
@@ -51,13 +52,15 @@
     <div id="loading-overlay">
         <div class="flex flex-col items-center">
             <div class="w-10 h-10 border-4 border-slate-900 border-t-transparent rounded-full animate-spin mb-4"></div>
-            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Loading Ledger</p>
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Initialising Ledger</p>
         </div>
     </div>
 
     <div id="root"></div>
     
-    <script type="text/babel" data-type="module" data-presets="typescript,react" src="index.tsx"></script>
+    <script type="text/babel" data-type="module" data-presets="typescript,react">
+      import "./index.tsx";
+    </script>
 
     <script>
       window.addEventListener('load', () => {
@@ -67,7 +70,7 @@
             loader.style.opacity = '0';
             setTimeout(() => loader.remove(), 500);
           }
-        }, 1000);
+        }, 800);
       });
     </script>
 </body>
