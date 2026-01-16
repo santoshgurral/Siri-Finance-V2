@@ -4,43 +4,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Siri Finance | Community Ledger</title>
+    <title>Siri Finance | Community Capital Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { 
           font-family: 'Plus Jakarta Sans', sans-serif; 
-          background-color: #fcfcfd;
-          color: #1a1a1e;
+          background-color: #f8fafc;
+          color: #0f172a;
         }
         .premium-card {
           background: #ffffff;
-          border: 1px solid #f1f1f4;
-          box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.02), 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+          border: 1px solid #e2e8f0;
+          box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
           border-radius: 24px;
+          transition: all 0.2s ease;
         }
-        .accent-text {
-          letter-spacing: -0.02em;
+        .premium-card:hover {
+          box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+          border-color: #cbd5e1;
+        }
+        .glass-header {
+          background: rgba(255, 255, 255, 0.8);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
         }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        
+        #loading-overlay {
+          position: fixed;
+          inset: 0;
+          background: #ffffff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 9999;
+          transition: opacity 0.5s ease;
+        }
     </style>
-    <!-- Babel Standalone for in-browser transpilation -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script type="importmap">
-    {
-      "imports": {
-        "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-        "react/": "https://esm.sh/react@^19.2.3/",
-        "react": "https://esm.sh/react@^19.2.3"
-      }
-    }
-    </script>
+{
+  "imports": {
+    "react": "https://esm.sh/react@19.0.0",
+    "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2.39.8",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/"
+  }
+}
+</script>
 </head>
 <body class="antialiased">
+    <div id="loading-overlay">
+        <div class="flex flex-col items-center">
+            <div class="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+            <p class="text-sm font-bold text-slate-500 uppercase tracking-widest">Siri Finance</p>
+        </div>
+    </div>
+
     <div id="root"></div>
-    <!-- Tell Babel to process the entry point as a module -->
-    <script type="text/babel" data-type="module" data-presets="typescript,react" src="./index.tsx"></script>
+    
+    <script type="text/babel" data-type="module" data-presets="typescript,react" src="index.tsx"></script>
+
+    <script>
+      // Hide loader once the app is rendered
+      window.addEventListener('load', () => {
+        setTimeout(() => {
+          const loader = document.getElementById('loading-overlay');
+          if (loader) loader.style.opacity = '0';
+          setTimeout(() => loader?.remove(), 500);
+        }, 800);
+      });
+    </script>
 </body>
 </html>
