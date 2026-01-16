@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Siri Finance</title>
+    <title>Siri Finance | Community Ledger</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -22,7 +22,7 @@
         .accent-text {
           letter-spacing: -0.02em;
         }
-        /* Custom Scrollbar for a cleaner look */
+        /* Custom Scrollbar */
         ::-webkit-scrollbar {
           width: 6px;
         }
@@ -33,15 +33,11 @@
           background: #e2e8f0;
           border-radius: 10px;
         }
-        ::-webkit-scrollbar-thumb:hover {
-          background: #cbd5e1;
-        }
     </style>
 <script type="importmap">
 {
   "imports": {
     "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "@google/genai": "https://esm.sh/@google/genai@^1.35.0",
     "react/": "https://esm.sh/react@^19.2.3/",
     "react": "https://esm.sh/react@^19.2.3"
   }
@@ -50,5 +46,6 @@
 </head>
 <body class="antialiased">
     <div id="root"></div>
+    <script type="module" src="index.tsx"></script>
 </body>
 </html>
