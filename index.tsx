@@ -172,6 +172,7 @@ const Dashboard = ({ state, updateState, currentUser, onLogout }: { state: AppSt
   const [tab, setTab] = useState<'members' | 'loans' | 'history' | 'system'>('members');
   const isAdmin = currentUser.role === 'ADMIN';
   const currentMonth = getCurrentCycleMonth();
+  const monthName = new Date().toLocaleString('default', { month: 'short' });
 
   const metrics = useMemo(() => {
     const totalContributed = state.contributions.reduce((acc, c) => acc + c.amount, 0);
@@ -240,6 +241,11 @@ const Dashboard = ({ state, updateState, currentUser, onLogout }: { state: AppSt
                   const emiPaid = activeLoan?.lastPaymentMonth === currentMonth;
                   const nextEmi = activeLoan ? calculateNextEMI(activeLoan) : null;
                   
+                  // Calculate combined dues for Admin summary
+                  const pendingContribution = isPaid ? 0 : MONTHLY_CONTRIBUTION;
+                  const pendingEmi = (activeLoan && !emiPaid && nextEmi) ? nextEmi.totalEMI : 0;
+                  const totalMonthlyDue = pendingContribution + pendingEmi;
+
                   return (
                     <div key={u.id} className="p-6 rounded-3xl bg-slate-50/50 border border-slate-100 flex flex-col justify-between group">
                       <div>
@@ -249,11 +255,43 @@ const Dashboard = ({ state, updateState, currentUser, onLogout }: { state: AppSt
                         </div>
                         <p className="text-[10px] text-slate-400 font-bold uppercase mb-6 tracking-widest">{u.email}</p>
                       </div>
+                      
                       {isAdmin && (
-                        <div className="space-y-2">
-                          {!isPaid && <button onClick={() => recordContribution(u.id)} className="w-full py-3 bg-indigo-600 text-white text-[9px] font-black uppercase rounded-xl">Record ₹2000</button>}
-                          {activeLoan && !emiPaid && nextEmi && <button onClick={() => recordEMI(activeLoan)} className="w-full py-3 bg-amber-500 text-white text-[9px] font-black uppercase rounded-xl">Record EMI ₹{formatINR(nextEmi.totalEMI)}</button>}
-                          {isPaid && (!activeLoan || emiPaid) && <div className="text-center py-2 text-[9px] font-black text-emerald-600 uppercase">Settled for Month</div>}
+                        <div className="space-y-3">
+                          <div className="space-y-2">
+                            {!isPaid && (
+                              <button onClick={() => recordContribution(u.id)} className="w-full py-3 bg-indigo-600 text-white text-[9px] font-black uppercase rounded-xl hover:bg-indigo-700 transition-colors shadow-sm">
+                                Record Contribution ₹{formatINR(MONTHLY_CONTRIBUTION)}
+                              </button>
+                            )}
+                            {activeLoan && !emiPaid && nextEmi && (
+                              <button onClick={() => recordEMI(activeLoan)} className="w-full py-3 bg-amber-500 text-white text-[9px] font-black uppercase rounded-xl hover:bg-amber-600 transition-colors shadow-sm">
+                                Record EMI ₹{formatINR(nextEmi.totalEMI)}
+                              </button>
+                            )}
+                          </div>
+                          
+                          {totalMonthlyDue > 0 ? (
+                            <div className="bg-white/50 border border-slate-100 p-3 rounded-2xl text-center">
+                              <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">Pending Total for {monthName}</p>
+                              <p className="text-xs font-black text-slate-900 tracking-tight">₹{formatINR(totalMonthlyDue)}</p>
+                              <div className="mt-1 flex justify-center gap-2">
+                                <span className={`text-[7px] font-bold uppercase ${isPaid ? 'text-emerald-500' : 'text-red-400'}`}>{isPaid ? '✓ Paid' : `+ ₹${formatINR(MONTHLY_CONTRIBUTION)}`}</span>
+                                {activeLoan && <span className={`text-[7px] font-bold uppercase ${emiPaid ? 'text-emerald-500' : 'text-amber-500'}`}>{emiPaid ? '✓ EMI' : `+ ₹${formatINR(pendingEmi)}`}</span>}
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="text-center py-4 bg-emerald-50/50 rounded-2xl border border-emerald-100">
+                              <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">✓ All Settled for {monthName}</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
+                      {!isAdmin && u.id === currentUser.id && (
+                        <div className="mt-4 p-4 bg-white rounded-2xl border border-slate-100 text-[10px] font-black text-center shadow-sm">
+                           {isPaid ? <span className="text-emerald-600 uppercase tracking-widest">Dues Settled ✅</span> : <span className="text-red-500 uppercase tracking-widest">Contribution Pending (₹{formatINR(MONTHLY_CONTRIBUTION)})</span>}
+                           {activeLoan && !emiPaid && <div className="text-amber-500 uppercase tracking-widest mt-1">EMI Pending (₹{formatINR(nextEmi?.totalEMI || 0)})</div>}
                         </div>
                       )}
                     </div>
