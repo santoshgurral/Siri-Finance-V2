@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
-import { User, UserRole } from '../types';
-import { INITIAL_ADMIN_EMAIL, INITIAL_ADMIN_PASSWORD } from '../constants';
+import { User, UserRole } from '../types.ts';
+import { INITIAL_ADMIN_EMAIL, INITIAL_ADMIN_PASSWORD } from '../constants.ts';
 
 interface AuthProps {
   onLogin: (user: User) => void;
@@ -17,7 +17,6 @@ export const Auth: React.FC<AuthProps> = ({ onLogin, users }) => {
     e.preventDefault();
     setError('');
 
-    // Admin check (using static credentials)
     if (email === INITIAL_ADMIN_EMAIL && password === INITIAL_ADMIN_PASSWORD) {
       const adminUser = users.find(u => u.email === INITIAL_ADMIN_EMAIL);
       if (adminUser) {
@@ -26,7 +25,6 @@ export const Auth: React.FC<AuthProps> = ({ onLogin, users }) => {
       }
     }
 
-    // Member check (using surname as password)
     const member = users.find(u => u.email === email);
     if (member) {
         const nameParts = member.name.trim().split(/\s+/);
@@ -43,7 +41,6 @@ export const Auth: React.FC<AuthProps> = ({ onLogin, users }) => {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden">
-      {/* Decorative Orbs */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-100 rounded-full blur-[120px] opacity-60"></div>
       <div className="absolute bottom-[-10%] right-[-10%] w-[30%] h-[30%] bg-blue-100 rounded-full blur-[100px] opacity-60"></div>
 

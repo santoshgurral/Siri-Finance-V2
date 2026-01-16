@@ -1,9 +1,9 @@
 
 import React, { useState } from 'react';
-import { AppState, UserRole, LoanStatus, LoanType, Loan, User } from '../types';
-import { MONTHLY_CONTRIBUTION } from '../constants';
-import { calculateNextEMI, getUpcomingObligation, getCommunityPendingDues } from '../services/loanCalculator';
-import { pushToCloud } from '../services/syncService';
+import { AppState, UserRole, LoanStatus, LoanType, Loan, User } from '../types.ts';
+import { MONTHLY_CONTRIBUTION } from '../constants.ts';
+import { calculateNextEMI, getUpcomingObligation, getCommunityPendingDues } from '../services/loanCalculator.ts';
+import { pushToCloud } from '../services/syncService.ts';
 
 interface DashboardProps {
   state: AppState;

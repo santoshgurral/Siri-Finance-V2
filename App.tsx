@@ -1,14 +1,13 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { User, UserRole, AppState, Contribution, Loan, LoanType, LoanStatus } from './types';
-import { Auth } from './components/Auth';
-import { Dashboard } from './components/Dashboard';
-import { INITIAL_ADMIN_EMAIL } from './constants';
-import { pushToCloud, pullFromCloud, isCloudEnabled } from './services/syncService';
+import { User, UserRole, AppState, Contribution, Loan, LoanType, LoanStatus } from './types.ts';
+import { Auth } from './components/Auth.tsx';
+import { Dashboard } from './components/Dashboard.tsx';
+import { INITIAL_ADMIN_EMAIL } from './constants.ts';
+import { pushToCloud, pullFromCloud, isCloudEnabled } from './services/syncService.ts';
 
 const App: React.FC = () => {
   const [state, setState] = useState<AppState>(() => {
-    // Try to load from local storage first (v3 to force new data load)
     try {
       const saved = localStorage.getItem('memberfund_state_v3'); 
       if (saved) {
@@ -24,7 +23,6 @@ const App: React.FC = () => {
       }
     } catch (e) {}
     
-    // Initial data setup
     const adminUser: User = { 
       id: 'admin-1', 
       name: 'System Admin', 
@@ -56,7 +54,6 @@ const App: React.FC = () => {
       joinedDate: '2025-11-10'
     }))];
 
-    // Generate 15 months of contributions for each member (30,000 INR total)
     const initialContributions: Contribution[] = [];
     const months = [
       "2024-11", "2024-12", "2025-01", "2025-02", "2025-03", "2025-04", 
@@ -76,7 +73,6 @@ const App: React.FC = () => {
       });
     });
 
-    // Initialize Historical Loans based on the provided table
     const initialLoans: Loan[] = [];
     const historicalLoansData = [
       { email: "aravinds369@gmail.com", takenDate: "2025-08-10", principal: 100000, balance: 75000 },
@@ -91,7 +87,6 @@ const App: React.FC = () => {
     historicalLoansData.forEach((ld, idx) => {
       const user = initialUsers.find(u => u.email === ld.email);
       if (user) {
-        // Calculate months elapsed roughly (from taken date to Jan 2026)
         const startDate = new Date(ld.takenDate);
         const endDate = new Date("2026-01-10");
         const diffMonths = (endDate.getFullYear() - startDate.getFullYear()) * 12 + (endDate.getMonth() - startDate.getMonth());
@@ -106,7 +101,7 @@ const App: React.FC = () => {
           requestDate: ld.takenDate,
           approvalDate: ld.takenDate,
           repaidAmount: ld.principal - ld.balance,
-          interestCollected: 0, // Simplified for history
+          interestCollected: 0,
           monthsElapsed: Math.max(0, diffMonths),
           lastPaymentMonth: "2026-01"
         });
@@ -128,13 +123,11 @@ const App: React.FC = () => {
   const lastUpdatedRef = useRef(state.lastUpdated);
   lastUpdatedRef.current = state.lastUpdated;
 
-  // Persistence to LocalStorage
   useEffect(() => {
     const { currentUser, syncStatus, ...stateToSave } = state;
     localStorage.setItem('memberfund_state_v3', JSON.stringify(stateToSave));
   }, [state.users, state.contributions, state.loans, state.bankInterest, state.lastUpdated]);
 
-  // Cloud Sync Logic
   useEffect(() => {
     if (!isCloudEnabled()) return;
     let isOffline = false;
@@ -164,7 +157,7 @@ const App: React.FC = () => {
     };
 
     performPull();
-    const interval = setInterval(performPull, 30000); // 30s poll
+    const interval = setInterval(performPull, 30000);
     return () => clearInterval(interval);
   }, []);
 
