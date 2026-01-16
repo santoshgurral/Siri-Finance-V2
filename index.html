@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Siri Finance | Community Capital Management</title>
+    <title>Siri Finance | Community Ledger</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -23,10 +23,6 @@
           backdrop-filter: blur(12px);
           -webkit-backdrop-filter: blur(12px);
         }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
-        
         #loading-overlay {
           position: fixed;
           inset: 0;
@@ -38,33 +34,32 @@
           transition: opacity 0.5s ease;
         }
     </style>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script type="importmap">
 {
   "imports": {
-    "react": "https://esm.sh/react@19.0.0",
-    "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
+    "react": "https://esm.sh/react@18.2.0",
+    "react-dom": "https://esm.sh/react-dom@18.2.0",
+    "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
     "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2.39.8",
     "react-dom/": "https://esm.sh/react-dom@^19.2.3/"
   }
 }
 </script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
 <body class="antialiased">
     <div id="loading-overlay">
         <div class="flex flex-col items-center">
-            <div class="w-12 h-12 border-4 border-slate-900 border-t-transparent rounded-full animate-spin mb-4"></div>
-            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Initializing Siri Finance</p>
+            <div class="w-10 h-10 border-4 border-slate-900 border-t-transparent rounded-full animate-spin mb-4"></div>
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Loading Ledger</p>
         </div>
     </div>
 
     <div id="root"></div>
     
-    <!-- data-type="module" is essential for ESM imports to work inside the TSX file -->
     <script type="text/babel" data-type="module" data-presets="typescript,react" src="index.tsx"></script>
 
     <script>
-      // Hide loader once the app signals it's ready or after a safe timeout
       window.addEventListener('load', () => {
         setTimeout(() => {
           const loader = document.getElementById('loading-overlay');
@@ -72,7 +67,7 @@
             loader.style.opacity = '0';
             setTimeout(() => loader.remove(), 500);
           }
-        }, 1500);
+        }, 1000);
       });
     </script>
 </body>
